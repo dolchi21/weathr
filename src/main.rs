@@ -10,6 +10,7 @@ use animation::{
     clouds::CloudSystem,
     moon::MoonSystem,
     raindrops::{RainIntensity, RaindropSystem},
+    snow::{SnowIntensity, SnowSystem},
     stars::StarSystem,
     sunny::SunnyAnimation,
     thunderstorm::ThunderstormSystem,
@@ -97,6 +98,7 @@ async fn run_app(
     let mut current_weather = None;
     let mut weather_error: Option<String> = None;
     let mut is_raining = false;
+    let mut is_snowing = false;
     let mut is_thunderstorm = false;
     let mut is_cloudy = false;
     let mut is_day = true;
@@ -104,6 +106,7 @@ async fn run_app(
     let (term_width, term_height) = renderer.get_size();
     world_scene.update_size(term_width, term_height);
     let mut raindrop_system = RaindropSystem::new(term_width, term_height, RainIntensity::Light);
+    let mut snow_system = SnowSystem::new(term_width, term_height, SnowIntensity::Light);
     let mut thunderstorm_system = ThunderstormSystem::new(term_width, term_height);
     let mut cloud_system = CloudSystem::new(term_width, term_height);
     let mut bird_system = BirdSystem::new(term_width, term_height);
@@ -116,7 +119,12 @@ async fn run_app(
             simulated_condition,
             WeatherCondition::Thunderstorm | WeatherCondition::ThunderstormHail
         );
+        is_snowing = matches!(
+            simulated_condition,
+            WeatherCondition::Snow | WeatherCondition::SnowGrains | WeatherCondition::SnowShowers
+        );
         is_raining = !is_thunderstorm
+            && !is_snowing
             && matches!(
                 simulated_condition,
                 WeatherCondition::Drizzle
@@ -134,6 +142,14 @@ async fn run_app(
             _ => RainIntensity::Light,
         };
         raindrop_system.set_intensity(rain_intensity);
+
+        let snow_intensity = match simulated_condition {
+            WeatherCondition::SnowGrains => SnowIntensity::Light,
+            WeatherCondition::SnowShowers => SnowIntensity::Medium,
+            WeatherCondition::Snow => SnowIntensity::Heavy,
+            _ => SnowIntensity::Light,
+        };
+        snow_system.set_intensity(snow_intensity);
 
         is_cloudy = matches!(
             simulated_condition,
@@ -175,7 +191,12 @@ async fn run_app(
                         weather.condition,
                         WeatherCondition::Thunderstorm | WeatherCondition::ThunderstormHail
                     );
+                    is_snowing = matches!(
+                        weather.condition,
+                        WeatherCondition::Snow | WeatherCondition::SnowGrains | WeatherCondition::SnowShowers
+                    );
                     is_raining = !is_thunderstorm
+                        && !is_snowing
                         && matches!(
                             weather.condition,
                             WeatherCondition::Drizzle
@@ -195,6 +216,14 @@ async fn run_app(
                         _ => RainIntensity::Light,
                     };
                     raindrop_system.set_intensity(rain_intensity);
+
+                    let snow_intensity = match weather.condition {
+                        WeatherCondition::SnowGrains => SnowIntensity::Light,
+                        WeatherCondition::SnowShowers => SnowIntensity::Medium,
+                        WeatherCondition::Snow => SnowIntensity::Heavy,
+                        _ => SnowIntensity::Light,
+                    };
+                    snow_system.set_intensity(snow_intensity);
 
                     is_cloudy = matches!(
                         weather.condition,
@@ -267,13 +296,13 @@ async fn run_app(
             moon_system.render(renderer)?;
         }
 
-        if is_cloudy || (!is_raining && !is_thunderstorm) {
+        if is_cloudy || (!is_raining && !is_thunderstorm && !is_snowing) {
             if is_cloudy {
                 cloud_system.update(term_width, term_height);
                 cloud_system.render(renderer)?;
             }
 
-            if !is_raining && !is_thunderstorm && is_day {
+            if !is_raining && !is_thunderstorm && !is_snowing && is_day {
                 bird_system.update(term_width, term_height);
                 bird_system.render(renderer)?;
             }
@@ -286,13 +315,13 @@ async fn run_app(
                     WeatherCondition::Clear | WeatherCondition::PartlyCloudy
                 )
             } else {
-                !is_raining && !is_thunderstorm && !is_cloudy
+                !is_raining && !is_thunderstorm && !is_cloudy && !is_snowing
             }
         } else {
             false
         };
 
-        if show_sun && !is_raining && !is_thunderstorm {
+        if show_sun && !is_raining && !is_thunderstorm && !is_snowing {
             let animation_y = if term_height > 20 { 3 } else { 2 };
             animation_controller.render_frame(renderer, &sunny_animation, animation_y)?;
         }
@@ -318,6 +347,9 @@ async fn run_app(
         } else if is_raining {
             raindrop_system.update(term_width, term_height);
             raindrop_system.render(renderer)?;
+        } else if is_snowing {
+            snow_system.update(term_width, term_height);
+            snow_system.render(renderer)?;
         }
 
         renderer.flush()?;
@@ -334,7 +366,7 @@ async fn run_app(
             }
         }
 
-        if !is_raining && !is_thunderstorm {
+        if !is_raining && !is_thunderstorm && !is_snowing {
             // Update sunny animation frame less frequently
             if last_frame_time.elapsed() >= FRAME_DELAY {
                 animation_controller.next_frame(&sunny_animation);
