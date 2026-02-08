@@ -6,8 +6,9 @@ mod scene;
 mod weather;
 
 use animation::{
-    birds::BirdSystem, chimney::ChimneySmoke, clouds::CloudSystem, fireflies::FireflySystem, moon::MoonSystem, raindrops::RaindropSystem,
-    snow::SnowSystem, stars::StarSystem, sunny::SunnyAnimation, thunderstorm::ThunderstormSystem,
+    birds::BirdSystem, chimney::ChimneySmoke, clouds::CloudSystem, fireflies::FireflySystem,
+    leaves::FallingLeaves, moon::MoonSystem, raindrops::RaindropSystem, snow::SnowSystem,
+    stars::StarSystem, sunny::SunnyAnimation, thunderstorm::ThunderstormSystem,
     AnimationController,
 };
 use clap::Parser;
@@ -46,6 +47,9 @@ struct Cli {
         help = "Simulate night time (for testing moon, stars, fireflies)"
     )]
     night: bool,
+
+    #[arg(short, long, help = "Enable falling autumn leaves")]
+    leaves: bool,
 }
 
 #[tokio::main]
@@ -72,7 +76,7 @@ async fn main() -> io::Result<()> {
     let mut renderer = TerminalRenderer::new()?;
     renderer.init()?;
 
-    let result = run_app(&config, &mut renderer, cli.simulate, cli.night).await;
+    let result = run_app(&config, &mut renderer, cli.simulate, cli.night, cli.leaves).await;
 
     renderer.cleanup()?;
 
@@ -84,6 +88,7 @@ async fn run_app(
     renderer: &mut TerminalRenderer,
     simulate_condition: Option<String>,
     simulate_night: bool,
+    show_leaves: bool,
 ) -> io::Result<()> {
     let mut world_scene = WorldScene::new(0, 0); // Will update size later
     let sunny_animation = SunnyAnimation::new();
@@ -141,6 +146,7 @@ async fn run_app(
     let mut moon_system = MoonSystem::new(term_width, term_height);
     let mut chimney_smoke = ChimneySmoke::new();
     let mut firefly_system = FireflySystem::new(term_width, term_height);
+    let mut falling_leaves = FallingLeaves::new(term_width, term_height);
 
     if let Some(ref condition_str) = simulate_condition {
         let simulated_condition = parse_weather_condition(condition_str);
@@ -340,6 +346,12 @@ async fn run_app(
         } else if is_snowing {
             snow_system.update(term_width, term_height);
             snow_system.render(renderer)?;
+        }
+
+        // Render falling leaves (if enabled)
+        if show_leaves && !is_raining && !is_thunderstorm && !is_snowing {
+            falling_leaves.update(term_width, term_height);
+            falling_leaves.render(renderer)?;
         }
 
         renderer.flush()?;
