@@ -1,4 +1,5 @@
 use super::Animation;
+use crossterm::style::Color;
 
 pub struct SunnyAnimation {
     frames: Vec<Vec<String>>,
@@ -64,6 +65,10 @@ impl Animation for SunnyAnimation {
 
     fn frame_count(&self) -> usize {
         self.frames.len()
+    }
+
+    fn get_color(&self) -> Color {
+        Color::Yellow
     }
 }
 
