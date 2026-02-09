@@ -34,9 +34,19 @@ mkdir -p ~/.config/weathr
 Edit `~/.config/weathr/config.toml`:
 
 ```toml
+# Hide the HUD (Heads Up Display) with weather details
+hide_hud = false
+
 [location]
+# Location coordinates (overridden if auto = true)
 latitude = 40.7128
 longitude = -74.0060
+
+# Auto-detect location via IP (defaults to true if config missing)
+auto = false
+
+# Hide the location name in the UI
+hide = false
 ```
 
 ### Example Locations
