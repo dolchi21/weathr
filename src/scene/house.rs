@@ -29,7 +29,6 @@ impl House {
         Self::WIDTH
     }
 
-
     pub fn get_ascii(&self) -> Vec<&'static str> {
         vec![
             "          (                  ",
@@ -79,15 +78,17 @@ impl House {
             match i {
                 0..=6 => {
                     for (j, ch) in line.chars().enumerate() {
-                        let col = x + j as u16;
-                        let color = if i < 4 && (ch == '(' || ch == ')' || ch == '_') {
-                            Color::DarkGrey
-                        } else if i < 4 {
-                            Color::Grey
-                        } else {
-                            roof_color
-                        };
-                        renderer.render_char(col, row, ch, color)?;
+                        if ch != ' ' {
+                            let col = x + j as u16;
+                            let color = if i < 4 && (ch == '(' || ch == ')' || ch == '_') {
+                                Color::DarkGrey
+                            } else if i < 4 {
+                                Color::Grey
+                            } else {
+                                roof_color
+                            };
+                            renderer.render_char(col, row, ch, color)?;
+                        }
                     }
                 }
                 7 => {
@@ -95,49 +96,55 @@ impl House {
                 }
                 8..=10 => {
                     for (j, ch) in line.chars().enumerate() {
-                        let col = x + j as u16;
-                        let color = if ch == '[' || ch == ']' {
-                            window_color
-                        } else if ch == '|' || ch == '.' || ch == '_' {
-                            wood_color
-                        } else if ch == '(' || ch == ')' {
-                            DOOR_COLOR
-                        } else if ch == '=' {
-                            Color::DarkGrey
-                        } else {
-                            wood_color
-                        };
-                        renderer.render_char(col, row, ch, color)?;
+                        if ch != ' ' {
+                            let col = x + j as u16;
+                            let color = if ch == '[' || ch == ']' {
+                                window_color
+                            } else if ch == '|' || ch == '.' || ch == '_' {
+                                wood_color
+                            } else if ch == '(' || ch == ')' {
+                                DOOR_COLOR
+                            } else if ch == '=' {
+                                Color::DarkGrey
+                            } else {
+                                wood_color
+                            };
+                            renderer.render_char(col, row, ch, color)?;
+                        }
                     }
                 }
                 11 => {
                     for (j, ch) in line.chars().enumerate() {
-                        let col = x + j as u16;
-                        let color = if ch == '=' || ch == '|' {
-                            Color::DarkGrey
-                        } else if ch == '(' || ch == ')' {
-                            DOOR_COLOR
-                        } else {
-                            wood_color
-                        };
-                        renderer.render_char(col, row, ch, color)?;
+                        if ch != ' ' {
+                            let col = x + j as u16;
+                            let color = if ch == '=' || ch == '|' {
+                                Color::DarkGrey
+                            } else if ch == '(' || ch == ')' {
+                                DOOR_COLOR
+                            } else {
+                                wood_color
+                            };
+                            renderer.render_char(col, row, ch, color)?;
+                        }
                     }
                 }
                 12 => {
                     for (j, ch) in line.chars().enumerate() {
-                        let col = x + j as u16;
-                        let color = if ch == '^' {
-                            if is_day {
-                                Color::Green
+                        if ch != ' ' {
+                            let col = x + j as u16;
+                            let color = if ch == '^' {
+                                if is_day {
+                                    Color::Green
+                                } else {
+                                    Color::DarkGreen
+                                }
+                            } else if ch == '=' {
+                                Color::DarkGrey
                             } else {
-                                Color::DarkGreen
-                            }
-                        } else if ch == '=' {
-                            Color::DarkGrey
-                        } else {
-                            Color::Reset
-                        };
-                        renderer.render_char(col, row, ch, color)?;
+                                Color::Reset
+                            };
+                            renderer.render_char(col, row, ch, color)?;
+                        }
                     }
                 }
                 _ => {

@@ -31,7 +31,16 @@ impl Decorations {
 
         if tree_x > 0 {
             for (i, line) in tree_lines.iter().enumerate() {
-                renderer.render_line_colored(tree_x, tree_y + i as u16, line, tree_color)?;
+                for (j, ch) in line.chars().enumerate() {
+                    if ch != ' ' {
+                        renderer.render_char(
+                            tree_x + j as u16,
+                            tree_y + i as u16,
+                            ch,
+                            tree_color,
+                        )?;
+                    }
+                }
             }
         }
 
@@ -43,7 +52,16 @@ impl Decorations {
 
         if fence_x < config.width {
             for (i, line) in fence_lines.iter().enumerate() {
-                renderer.render_line_colored(fence_x, fence_y + i as u16, line, fence_color)?;
+                for (j, ch) in line.chars().enumerate() {
+                    if ch != ' ' {
+                        renderer.render_char(
+                            fence_x + j as u16,
+                            fence_y + i as u16,
+                            ch,
+                            fence_color,
+                        )?;
+                    }
+                }
             }
         }
 
@@ -55,12 +73,16 @@ impl Decorations {
 
         if mailbox_x < config.width {
             for (i, line) in mailbox_lines.iter().enumerate() {
-                renderer.render_line_colored(
-                    mailbox_x,
-                    mailbox_y + i as u16,
-                    line,
-                    mailbox_color,
-                )?;
+                for (j, ch) in line.chars().enumerate() {
+                    if ch != ' ' {
+                        renderer.render_char(
+                            mailbox_x + j as u16,
+                            mailbox_y + i as u16,
+                            ch,
+                            mailbox_color,
+                        )?;
+                    }
+                }
             }
         }
 
@@ -74,7 +96,16 @@ impl Decorations {
             if pine_x + 10 < config.width {
                 // Check if full tree fits
                 for (i, line) in pine_lines.iter().enumerate() {
-                    renderer.render_line_colored(pine_x, pine_y + i as u16, line, pine_color)?;
+                    for (j, ch) in line.chars().enumerate() {
+                        if ch != ' ' {
+                            renderer.render_char(
+                                pine_x + j as u16,
+                                pine_y + i as u16,
+                                ch,
+                                pine_color,
+                            )?;
+                        }
+                    }
                 }
             }
         }
