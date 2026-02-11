@@ -1,5 +1,6 @@
 use crate::render::TerminalRenderer;
 use crossterm::style::Color;
+use rand::prelude::*;
 use std::io;
 
 #[derive(Clone)]
@@ -26,7 +27,7 @@ impl AirplaneSystem {
         }
     }
 
-    pub fn update(&mut self, terminal_width: u16, terminal_height: u16) {
+    pub fn update(&mut self, terminal_width: u16, terminal_height: u16, rng: &mut impl Rng) {
         self.terminal_width = terminal_width;
         self.terminal_height = terminal_height;
 
@@ -37,15 +38,15 @@ impl AirplaneSystem {
         self.planes.retain(|p| p.x < terminal_width as f32);
 
         self.spawn_cooldown = self.spawn_cooldown.saturating_sub(1);
-        if self.spawn_cooldown == 0 && rand::random::<f32>() < 0.001 {
-            self.spawn_plane();
-            self.spawn_cooldown = 600 + (rand::random::<u16>() % 300);
+        if self.spawn_cooldown == 0 && rng.random::<f32>() < 0.001 {
+            self.spawn_plane(rng);
+            self.spawn_cooldown = 600 + (rng.random::<u16>() % 300);
         }
     }
 
-    fn spawn_plane(&mut self) {
-        let y = (rand::random::<u16>() % (self.terminal_height / 4)) as f32;
-        let speed = 0.3 + (rand::random::<f32>() * 0.2);
+    fn spawn_plane(&mut self, rng: &mut impl Rng) {
+        let y = (rng.random::<u16>() % (self.terminal_height / 4)) as f32;
+        let speed = 0.3 + (rng.random::<f32>() * 0.2);
 
         self.planes.push(Airplane { x: 0.0, y, speed });
     }

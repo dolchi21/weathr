@@ -1,5 +1,6 @@
 use crate::render::TerminalRenderer;
 use crossterm::style::Color;
+use rand::prelude::*;
 use std::io;
 
 struct Bird {
@@ -26,7 +27,7 @@ impl BirdSystem {
         }
     }
 
-    pub fn update(&mut self, terminal_width: u16, terminal_height: u16) {
+    pub fn update(&mut self, terminal_width: u16, terminal_height: u16, rng: &mut impl Rng) {
         self.terminal_width = terminal_width;
         self.terminal_height = terminal_height;
 
@@ -41,9 +42,9 @@ impl BirdSystem {
         }
 
         self.birds.retain(|b| b.x < terminal_width as f32);
-        if self.birds.len() < 3 && rand::random::<f32>() < 0.01 {
-            let y = (rand::random::<u16>() % (terminal_height / 3)) as f32;
-            let speed = 0.2 + (rand::random::<f32>() * 0.2);
+        if self.birds.len() < 3 && rng.random::<f32>() < 0.01 {
+            let y = (rng.random::<u16>() % (terminal_height / 3)) as f32;
+            let speed = 0.2 + (rng.random::<f32>() * 0.2);
             self.birds.push(Bird {
                 x: 0.0,
                 y,

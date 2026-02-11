@@ -1,5 +1,6 @@
 use crate::render::TerminalRenderer;
 use crossterm::style::Color;
+use rand::prelude::*;
 use std::io;
 
 struct Star {
@@ -27,6 +28,7 @@ pub struct StarSystem {
 
 impl StarSystem {
     pub fn new(terminal_width: u16, terminal_height: u16) -> Self {
+        let mut rng = rand::rng();
         let count = (terminal_width as usize * terminal_height as usize) / 80; // Density
         let mut stars = Vec::with_capacity(count);
         const MIN_DISTANCE: f32 = 3.0; // Minimum distance between stars
@@ -36,8 +38,8 @@ impl StarSystem {
             let max_attempts = 50;
 
             loop {
-                let x = rand::random::<u16>() % terminal_width;
-                let y = rand::random::<u16>() % (terminal_height / 2); // Upper half
+                let x = rng.random::<u16>() % terminal_width;
+                let y = rng.random::<u16>() % (terminal_height / 2); // Upper half
 
                 // Check if this position is far enough from existing stars
                 let too_close = stars.iter().any(|star: &Star| {
@@ -51,8 +53,8 @@ impl StarSystem {
                     stars.push(Star {
                         x,
                         y,
-                        brightness: rand::random::<f32>(),
-                        phase: rand::random::<f32>() * std::f32::consts::TAU,
+                        brightness: rng.random::<f32>(),
+                        phase: rng.random::<f32>() * std::f32::consts::TAU,
                     });
                     break;
                 }
@@ -69,7 +71,7 @@ impl StarSystem {
         }
     }
 
-    pub fn update(&mut self, terminal_width: u16, terminal_height: u16) {
+    pub fn update(&mut self, terminal_width: u16, terminal_height: u16, rng: &mut impl Rng) {
         self.terminal_width = terminal_width;
         self.terminal_height = terminal_height;
 
@@ -87,15 +89,15 @@ impl StarSystem {
             if star.x < 0.0 || star.y as u16 >= terminal_height || star.length == 0 {
                 self.shooting_star = None;
             }
-        } else if rand::random::<f32>() < 0.005 {
-            let start_x = (rand::random::<u16>() % (terminal_width / 2)) + (terminal_width / 4);
-            let start_y = rand::random::<u16>() % (terminal_height / 4);
+        } else if rng.random::<f32>() < 0.005 {
+            let start_x = (rng.random::<u16>() % (terminal_width / 2)) + (terminal_width / 4);
+            let start_y = rng.random::<u16>() % (terminal_height / 4);
 
             self.shooting_star = Some(ShootingStar {
                 x: start_x as f32,
                 y: start_y as f32,
-                speed_x: if rand::random::<bool>() { 1.5 } else { -1.5 },
-                speed_y: 0.5 + (rand::random::<f32>() * 0.5),
+                speed_x: if rng.random::<bool>() { 1.5 } else { -1.5 },
+                speed_y: 0.5 + (rng.random::<f32>() * 0.5),
                 length: 5,
                 active: true,
             });

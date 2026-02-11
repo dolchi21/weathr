@@ -1,5 +1,6 @@
 use crate::render::TerminalRenderer;
 use crossterm::style::Color;
+use rand::prelude::*;
 use std::io;
 
 struct Leaf {
@@ -15,18 +16,18 @@ struct Leaf {
 }
 
 impl Leaf {
-    fn new(terminal_width: u16, spawn_at_top: bool) -> Self {
-        let x = rand::random::<f32>() * terminal_width as f32;
+    fn new(terminal_width: u16, spawn_at_top: bool, rng: &mut impl Rng) -> Self {
+        let x = rng.random::<f32>() * terminal_width as f32;
         let y = if spawn_at_top {
-            -(rand::random::<f32>() * 5.0)
+            -(rng.random::<f32>() * 5.0)
         } else {
-            rand::random::<f32>() * terminal_width as f32
+            rng.random::<f32>() * terminal_width as f32
         };
 
-        let fall_speed = 0.15 + (rand::random::<f32>() * 0.2);
-        let sway_speed = 0.05 + (rand::random::<f32>() * 0.1);
-        let sway_phase = rand::random::<f32>() * std::f32::consts::PI * 2.0;
-        let sway_amplitude = 0.5 + (rand::random::<f32>() * 1.5);
+        let fall_speed = 0.15 + (rng.random::<f32>() * 0.2);
+        let sway_speed = 0.05 + (rng.random::<f32>() * 0.1);
+        let sway_phase = rng.random::<f32>() * std::f32::consts::PI * 2.0;
+        let sway_amplitude = 0.5 + (rng.random::<f32>() * 1.5);
 
         let colors = [
             Color::Rgb {
@@ -60,10 +61,10 @@ impl Leaf {
                 b: 19,
             }, // Saddle brown
         ];
-        let color = colors[(rand::random::<u32>() % colors.len() as u32) as usize];
+        let color = colors[(rng.random::<u32>() % colors.len() as u32) as usize];
 
         let chars = ['*', '+', ',', '.', '~'];
-        let character = chars[(rand::random::<u32>() % chars.len() as u32) as usize];
+        let character = chars[(rng.random::<u32>() % chars.len() as u32) as usize];
 
         Self {
             x,
@@ -128,11 +129,12 @@ pub struct FallingLeaves {
 
 impl FallingLeaves {
     pub fn new(terminal_width: u16, terminal_height: u16) -> Self {
+        let mut rng = rand::rng();
         let mut leaves = Vec::new();
         let initial_count = std::cmp::max(5, terminal_width / 10);
 
         for _ in 0..initial_count {
-            leaves.push(Leaf::new(terminal_width, false));
+            leaves.push(Leaf::new(terminal_width, false, &mut rng));
         }
 
         Self {
@@ -144,7 +146,7 @@ impl FallingLeaves {
         }
     }
 
-    pub fn update(&mut self, terminal_width: u16, terminal_height: u16) {
+    pub fn update(&mut self, terminal_width: u16, terminal_height: u16, rng: &mut impl Rng) {
         self.terminal_width = terminal_width;
         self.terminal_height = terminal_height;
 
@@ -157,8 +159,8 @@ impl FallingLeaves {
         self.spawn_counter += 1;
         if self.spawn_counter >= self.spawn_rate {
             self.spawn_counter = 0;
-            if rand::random::<f32>() < 0.7 {
-                self.leaves.push(Leaf::new(terminal_width, true));
+            if rng.random::<f32>() < 0.7 {
+                self.leaves.push(Leaf::new(terminal_width, true, rng));
             }
         }
 

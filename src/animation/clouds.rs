@@ -1,5 +1,6 @@
 use crate::render::TerminalRenderer;
 use crossterm::style::Color;
+use rand::prelude::*;
 use std::io;
 use std::sync::OnceLock;
 
@@ -35,6 +36,7 @@ impl CloudSystem {
 
 impl CloudSystem {
     pub fn new(terminal_width: u16, terminal_height: u16) -> Self {
+        let mut rng = rand::rng();
         let mut clouds = Vec::new();
         // Add a few initial clouds
         let count = std::cmp::max(1, terminal_width / 20);
@@ -45,6 +47,7 @@ impl CloudSystem {
                 terminal_height,
                 true,
                 Color::White,
+                &mut rng,
             ));
         }
 
@@ -55,22 +58,28 @@ impl CloudSystem {
         }
     }
 
-    fn create_random_cloud(width: u16, height: u16, random_x: bool, color: Color) -> Cloud {
+    fn create_random_cloud(
+        width: u16,
+        height: u16,
+        random_x: bool,
+        color: Color,
+        rng: &mut impl Rng,
+    ) -> Cloud {
         let shapes = CLOUD_SHAPES.get_or_init(Self::create_cloud_shapes);
 
-        let shape_idx = (rand::random::<u32>() as usize) % shapes.len();
+        let shape_idx = (rng.random::<u32>() as usize) % shapes.len();
         let shape = shapes[shape_idx].clone();
 
         let y_range = height / 3;
-        let y = (rand::random::<u16>() % std::cmp::max(1, y_range)) as f32;
+        let y = (rng.random::<u16>() % std::cmp::max(1, y_range)) as f32;
 
         let x = if random_x {
-            (rand::random::<u16>() % width) as f32
+            (rng.random::<u16>() % width) as f32
         } else {
             -(shape[0].len() as f32)
         };
 
-        let speed = 0.05 + (rand::random::<f32>() * 0.1);
+        let speed = 0.05 + (rng.random::<f32>() * 0.1);
 
         Cloud {
             x,
@@ -116,6 +125,7 @@ impl CloudSystem {
         terminal_height: u16,
         is_clear: bool,
         cloud_color: Color,
+        rng: &mut impl Rng,
     ) {
         self.terminal_width = terminal_width;
         self.terminal_height = terminal_height;
@@ -134,12 +144,13 @@ impl CloudSystem {
 
         let spawn_chance = if is_clear { 0.002 } else { 0.005 };
 
-        if self.clouds.len() < max_clouds && rand::random::<f32>() < spawn_chance {
+        if self.clouds.len() < max_clouds && rng.random::<f32>() < spawn_chance {
             self.clouds.push(Self::create_random_cloud(
                 terminal_width,
                 terminal_height,
                 false,
                 cloud_color,
+                rng,
             ));
         }
     }

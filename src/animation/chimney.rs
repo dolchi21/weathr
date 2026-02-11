@@ -1,5 +1,6 @@
 use crate::render::TerminalRenderer;
 use crossterm::style::Color;
+use rand::prelude::*;
 use std::io;
 
 const MAX_PARTICLES: usize = 200;
@@ -13,12 +14,12 @@ struct SmokeParticle {
 }
 
 impl SmokeParticle {
-    fn new(chimney_x: u16, chimney_y: u16) -> Self {
-        let drift = (rand::random::<f32>() - 0.5) * 0.15;
-        let max_age = 30 + (rand::random::<u32>() % 15);
+    fn new(chimney_x: u16, chimney_y: u16, rng: &mut impl Rng) -> Self {
+        let drift = (rng.random::<f32>() - 0.5) * 0.15;
+        let max_age = 30 + (rng.random::<u32>() % 15);
 
         Self {
-            x: chimney_x as f32 + (rand::random::<f32>() - 0.5) * 2.0,
+            x: chimney_x as f32 + (rng.random::<f32>() - 0.5) * 2.0,
             y: chimney_y as f32,
             age: 0,
             max_age,
@@ -63,7 +64,7 @@ impl ChimneySmoke {
         }
     }
 
-    pub fn update(&mut self, chimney_x: u16, chimney_y: u16) {
+    pub fn update(&mut self, chimney_x: u16, chimney_y: u16, rng: &mut impl Rng) {
         for particle in &mut self.particles {
             particle.update();
         }
@@ -74,7 +75,7 @@ impl ChimneySmoke {
         if self.spawn_counter >= self.spawn_rate && self.particles.len() < MAX_PARTICLES {
             self.spawn_counter = 0;
             self.particles
-                .push(SmokeParticle::new(chimney_x, chimney_y));
+                .push(SmokeParticle::new(chimney_x, chimney_y, rng));
         }
     }
 

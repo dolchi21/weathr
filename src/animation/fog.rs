@@ -1,6 +1,7 @@
 use crate::render::TerminalRenderer;
 use crate::weather::types::FogIntensity;
 use crossterm::style::Color;
+use rand::prelude::*;
 use std::io;
 
 struct FogWisp {
@@ -14,15 +15,15 @@ struct FogWisp {
 }
 
 impl FogWisp {
-    fn new(terminal_width: u16, terminal_height: u16) -> Self {
+    fn new(terminal_width: u16, terminal_height: u16, rng: &mut impl Rng) -> Self {
         let ground_level = terminal_height.saturating_sub(7);
         let fog_zone_top = ground_level.saturating_sub(15);
 
-        let x = rand::random::<f32>() * terminal_width as f32;
-        let y = fog_zone_top as f32 + (rand::random::<f32>() * 15.0);
+        let x = rng.random::<f32>() * terminal_width as f32;
+        let y = fog_zone_top as f32 + (rng.random::<f32>() * 15.0);
 
-        let chars = ['.', ',', '-', '~', '.', ',', '-'];
-        let char_idx = (rand::random::<u32>() as usize) % chars.len();
+        let chars = ['.', ',', '-', '~'];
+        let char_idx = (rng.random::<u32>() as usize) % chars.len();
 
         let colors = [
             Color::Grey,
@@ -33,16 +34,16 @@ impl FogWisp {
                 b: 120,
             },
         ];
-        let color_idx = (rand::random::<u32>() as usize) % colors.len();
+        let color_idx = (rng.random::<u32>() as usize) % colors.len();
 
         Self {
             x,
             y,
-            speed_x: (rand::random::<f32>() - 0.5) * 0.15,
+            speed_x: (rng.random::<f32>() - 0.5) * 0.15,
             character: chars[char_idx],
             color: colors[color_idx],
             lifetime: 0,
-            max_lifetime: 100 + (rand::random::<u32>() % 200),
+            max_lifetime: 100 + (rng.random::<u32>() % 200),
         }
     }
 
@@ -81,7 +82,7 @@ impl FogSystem {
         self.intensity = intensity;
     }
 
-    pub fn update(&mut self, terminal_width: u16, terminal_height: u16) {
+    pub fn update(&mut self, terminal_width: u16, terminal_height: u16, rng: &mut impl Rng) {
         self.terminal_width = terminal_width;
         self.terminal_height = terminal_height;
 
@@ -91,11 +92,12 @@ impl FogSystem {
 
         self.wisps.retain(|w| w.is_alive(terminal_width));
 
-        let (target_count, spawn_delay) = match self.intensity {
-            FogIntensity::Light => (40, 4),
-            FogIntensity::Medium => (80, 2),
-            FogIntensity::Heavy => (120, 1),
+        let (target_multiplier, spawn_delay) = match self.intensity {
+            FogIntensity::Light => (0.3, 4),
+            FogIntensity::Medium => (0.6, 2),
+            FogIntensity::Heavy => (1.0, 1),
         };
+        let target_count = (terminal_width as f32 * target_multiplier) as usize;
 
         self.spawn_timer += 1;
         if self.spawn_timer >= spawn_delay && self.wisps.len() < target_count {
@@ -103,7 +105,7 @@ impl FogSystem {
             for _ in 0..2 {
                 if self.wisps.len() < target_count {
                     self.wisps
-                        .push(FogWisp::new(terminal_width, terminal_height));
+                        .push(FogWisp::new(terminal_width, terminal_height, rng));
                 }
             }
         }

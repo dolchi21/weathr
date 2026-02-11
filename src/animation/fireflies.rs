@@ -1,5 +1,6 @@
 use crate::render::TerminalRenderer;
 use crossterm::style::Color;
+use rand::prelude::*;
 use std::io;
 
 struct Firefly {
@@ -13,17 +14,17 @@ struct Firefly {
 }
 
 impl Firefly {
-    fn new(terminal_width: u16, horizon_y: u16) -> Self {
-        let x = rand::random::<f32>() * terminal_width as f32;
+    fn new(terminal_width: u16, horizon_y: u16, rng: &mut impl Rng) -> Self {
+        let x = rng.random::<f32>() * terminal_width as f32;
         let min_y = (horizon_y.saturating_sub(8)) as f32;
         let max_y = (horizon_y.saturating_sub(1)) as f32;
-        let y = min_y + (rand::random::<f32>() * (max_y - min_y));
+        let y = min_y + (rng.random::<f32>() * (max_y - min_y));
 
-        let vx = (rand::random::<f32>() - 0.5) * 0.3;
-        let vy = (rand::random::<f32>() - 0.5) * 0.2;
+        let vx = (rng.random::<f32>() - 0.5) * 0.3;
+        let vy = (rng.random::<f32>() - 0.5) * 0.2;
 
-        let glow_speed = 0.1 + (rand::random::<f32>() * 0.15);
-        let glow_phase = rand::random::<f32>() * std::f32::consts::PI * 2.0;
+        let glow_speed = 0.1 + (rng.random::<f32>() * 0.15);
+        let glow_phase = rng.random::<f32>() * std::f32::consts::PI * 2.0;
 
         Self {
             x,
@@ -36,13 +37,13 @@ impl Firefly {
         }
     }
 
-    fn update(&mut self, terminal_width: u16, horizon_y: u16) {
+    fn update(&mut self, terminal_width: u16, horizon_y: u16, rng: &mut impl Rng) {
         self.x += self.vx;
         self.y += self.vy;
 
-        if rand::random::<f32>() < 0.02 {
-            self.vx = (rand::random::<f32>() - 0.5) * 0.3;
-            self.vy = (rand::random::<f32>() - 0.5) * 0.2;
+        if rng.random::<f32>() < 0.02 {
+            self.vx = (rng.random::<f32>() - 0.5) * 0.3;
+            self.vy = (rng.random::<f32>() - 0.5) * 0.2;
         }
 
         // Wrap horizontally
@@ -123,17 +124,24 @@ impl FireflySystem {
         }
     }
 
-    pub fn update(&mut self, terminal_width: u16, terminal_height: u16, horizon_y: u16) {
+    pub fn update(
+        &mut self,
+        terminal_width: u16,
+        terminal_height: u16,
+        horizon_y: u16,
+        rng: &mut impl Rng,
+    ) {
         self.terminal_width = terminal_width;
         self.terminal_height = terminal_height;
 
         for firefly in &mut self.fireflies {
-            firefly.update(terminal_width, horizon_y);
+            firefly.update(terminal_width, horizon_y, rng);
         }
 
         let target_count = std::cmp::max(3, terminal_width / 15) as usize;
-        if self.fireflies.len() < target_count && rand::random::<f32>() < 0.01 {
-            self.fireflies.push(Firefly::new(terminal_width, horizon_y));
+        if self.fireflies.len() < target_count && rng.random::<f32>() < 0.01 {
+            self.fireflies
+                .push(Firefly::new(terminal_width, horizon_y, rng));
         }
     }
 

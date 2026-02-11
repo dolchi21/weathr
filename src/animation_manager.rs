@@ -81,19 +81,21 @@ impl AnimationManager {
         term_width: u16,
         term_height: u16,
     ) -> io::Result<()> {
+        let mut rng = rand::rng();
+
         // Calculate horizon_y early so it's available for all systems
         let ground_height = WorldScene::GROUND_HEIGHT;
         let horizon_y = term_height.saturating_sub(ground_height);
 
         if !conditions.is_day {
-            self.star_system.update(term_width, term_height);
+            self.star_system.update(term_width, term_height, &mut rng);
             self.star_system.render(renderer)?;
             self.moon_system.update(term_width, term_height);
             self.moon_system.render(renderer)?;
 
             if state.should_show_fireflies() {
                 self.firefly_system
-                    .update(term_width, term_height, horizon_y);
+                    .update(term_width, term_height, horizon_y, &mut rng);
                 self.firefly_system.render(renderer)?;
             }
         }
@@ -103,7 +105,7 @@ impl AnimationManager {
             && !conditions.is_snowing
             && conditions.is_day
         {
-            self.bird_system.update(term_width, term_height);
+            self.bird_system.update(term_width, term_height, &mut rng);
             self.bird_system.render(renderer)?;
         }
 
@@ -133,7 +135,7 @@ impl AnimationManager {
             if conditions.is_cloudy || is_clear {
                 self.cloud_system.set_cloud_color(is_clear);
                 self.cloud_system
-                    .update(term_width, term_height, is_clear, cloud_color);
+                    .update(term_width, term_height, is_clear, cloud_color, &mut rng);
                 self.cloud_system.render(renderer)?;
             }
         }
@@ -143,7 +145,8 @@ impl AnimationManager {
             && !conditions.is_snowing
             && !conditions.is_foggy
         {
-            self.airplane_system.update(term_width, term_height);
+            self.airplane_system
+                .update(term_width, term_height, &mut rng);
             self.airplane_system.render(renderer)?;
         }
 
@@ -161,6 +164,7 @@ impl AnimationManager {
             return Ok(());
         }
 
+        let mut rng = rand::rng();
         let ground_height = WorldScene::GROUND_HEIGHT;
         let horizon_y = term_height.saturating_sub(ground_height);
         let house_width = House::WIDTH;
@@ -170,7 +174,7 @@ impl AnimationManager {
         let chimney_x = house_x + House::CHIMNEY_X_OFFSET;
         let chimney_y = house_y;
 
-        self.chimney_smoke.update(chimney_x, chimney_y);
+        self.chimney_smoke.update(chimney_x, chimney_y, &mut rng);
         self.chimney_smoke.render(renderer)?;
 
         Ok(())
@@ -207,7 +211,7 @@ impl AnimationManager {
         }
 
         if conditions.is_foggy {
-            self.fog_system.update(term_width, term_height);
+            self.fog_system.update(term_width, term_height, &mut rng);
             self.fog_system.render(renderer)?;
         }
 
@@ -216,7 +220,8 @@ impl AnimationManager {
             && !conditions.is_thunderstorm
             && !conditions.is_snowing
         {
-            self.falling_leaves.update(term_width, term_height);
+            self.falling_leaves
+                .update(term_width, term_height, &mut rng);
             self.falling_leaves.render(renderer)?;
         }
 
