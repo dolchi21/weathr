@@ -80,9 +80,8 @@ impl AnimationManager {
         state: &AppState,
         term_width: u16,
         term_height: u16,
+        mut rng: &mut impl rand::Rng,
     ) -> io::Result<()> {
-        let mut rng = rand::rng();
-
         // Calculate horizon_y early so it's available for all systems
         let ground_height = WorldScene::GROUND_HEIGHT;
         let horizon_y = term_height.saturating_sub(ground_height);
@@ -159,12 +158,11 @@ impl AnimationManager {
         conditions: &WeatherConditions,
         term_width: u16,
         term_height: u16,
+        mut rng: &mut impl rand::Rng,
     ) -> io::Result<()> {
         if conditions.is_raining || conditions.is_thunderstorm {
             return Ok(());
         }
-
-        let mut rng = rand::rng();
         let ground_height = WorldScene::GROUND_HEIGHT;
         let horizon_y = term_height.saturating_sub(ground_height);
         let house_width = House::WIDTH;
@@ -186,9 +184,8 @@ impl AnimationManager {
         conditions: &WeatherConditions,
         term_width: u16,
         term_height: u16,
+        mut rng: &mut impl rand::Rng,
     ) -> io::Result<()> {
-        let mut rng = rand::rng();
-
         if conditions.is_thunderstorm {
             self.raindrop_system
                 .update(term_width, term_height, &mut rng);

@@ -155,6 +155,7 @@ impl App {
     }
 
     pub async fn run(&mut self, renderer: &mut TerminalRenderer) -> io::Result<()> {
+        let mut rng = rand::rng();
         loop {
             if let Ok(result) = self.weather_receiver.try_recv() {
                 match result {
@@ -210,6 +211,7 @@ impl App {
                 &self.state,
                 term_width,
                 term_height,
+                &mut rng,
             )?;
 
             self.scene
@@ -220,6 +222,7 @@ impl App {
                 &self.state.weather_conditions,
                 term_width,
                 term_height,
+                &mut rng,
             )?;
 
             self.animations.render_foreground(
@@ -227,6 +230,7 @@ impl App {
                 &self.state.weather_conditions,
                 term_width,
                 term_height,
+                &mut rng,
             )?;
 
             self.state.update_loading_animation();
