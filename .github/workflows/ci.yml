@@ -34,3 +34,9 @@ jobs:
 
       - name: Clippy
         run: cargo clippy -- -D warnings
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
+
+      - name: Security Audit
+        run: cargo audit
