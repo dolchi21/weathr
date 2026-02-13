@@ -64,12 +64,12 @@ fn test_terminal_error_user_friendly_message() {
     let too_small = TerminalError::TooSmall {
         width: 40,
         height: 10,
-        min_width: 80,
-        min_height: 24,
+        min_width: 70,
+        min_height: 20,
     };
     let msg = too_small.user_friendly_message();
     assert!(msg.contains("40x10"));
-    assert!(msg.contains("80x24"));
+    assert!(msg.contains("70x20"));
     assert!(msg.contains("too small"));
 
     let not_a_tty = TerminalError::NotATty;
